@@ -32,8 +32,8 @@ const options = {
 };
 
 const httpsServer = https.createServer(options, app);
-httpsServer.listen(8000, () => {
-  console.log("listening on port: " + 8000);
+httpsServer.listen(4200, () => {
+  console.log("listening on port: " + 4200);
 });
 
 const io = new Server(httpsServer);
@@ -289,7 +289,7 @@ connections.on("connection", async (socket) => {
         const producerSocket = peers[producerData.socketId].socket;
         // use socket to send producer id to producer
         console.log("producerId ", id);
-        
+
         producerSocket.emit("new-producer", { producerId: id });
       }
     });
@@ -364,13 +364,12 @@ connections.on("connection", async (socket) => {
       try {
         const { roomName } = peers[socket.id];
         const router = rooms[roomName].router;
+
         let consumerTransport = transports.find(
           (transportData) =>
             transportData.consumer &&
             transportData.transport.id == serverConsumerTransportId
         ).transport;
-
-        console.log("consumerTransport ", consumerTransport);
 
         // check if the router can consume the specified producer
         if (
@@ -416,8 +415,6 @@ connections.on("connection", async (socket) => {
             rtpParameters: consumer.rtpParameters,
             serverConsumerId: consumer.id,
           };
-
-          console.log("params ", params);
 
           // send the parameters to the client
           callback({ params });

@@ -15,18 +15,15 @@ const __dirname = path.resolve();
 import { Server } from "socket.io";
 import mediasoup from "mediasoup";
 
-app.get("*", (req, res, next) => {
-  const path = "/sfu/";
+// app.get('*', (req, res, next) => {
+//   const path = '/sfu/'
 
-  if (req.path.indexOf(path) == 0 && req.path.length > path.length)
-    return next();
+//   if (req.path.indexOf(path) == 0 && req.path.length > path.length) return next()
 
-  res.send(
-    `You need to specify a room name in the path e.g. 'https://127.0.0.1/sfu/room'`
-  );
-});
+//   res.send(`You need to specify a room name in the path e.g. 'https://127.0.0.1/sfu/room'`)
+// })
 
-app.use("/sfu/:room", express.static(path.join(__dirname, "public")));
+// app.use('/sfu/:room', express.static(path.join(__dirname, 'public')))
 
 // SSL cert for HTTPS access
 const options = {
@@ -35,8 +32,8 @@ const options = {
 };
 
 const httpsServer = https.createServer(options, app);
-httpsServer.listen(3000, () => {
-  console.log("listening on port: " + 3000);
+httpsServer.listen(8000, () => {
+  console.log("listening on port: " + 8000);
 });
 
 const io = new Server(httpsServer);
@@ -78,10 +75,6 @@ const createWorker = async () => {
 // We create a Worker as soon as our application starts
 worker = createWorker();
 
-// This is an Array of RtpCapabilities
-// https://mediasoup.org/documentation/v3/mediasoup/rtp-parameters-and-capabilities/#RtpCodecCapability
-// list of media codecs supported by mediasoup ...
-// https://github.com/versatica/mediasoup/blob/v3/src/supportedRtpCapabilities.ts
 const mediaCodecs = [
   {
     kind: "audio",
@@ -100,7 +93,7 @@ const mediaCodecs = [
 ];
 
 connections.on("connection", async (socket) => {
-  console.log(socket.id);
+  console.log("socketId: ", socket.id);
   socket.emit("connection-success", {
     socketId: socket.id,
   });
@@ -117,20 +110,23 @@ connections.on("connection", async (socket) => {
   };
 
   socket.on("disconnect", () => {
-    // do some cleanup
     console.log("peer disconnected");
     consumers = removeItems(consumers, socket.id, "consumer");
     producers = removeItems(producers, socket.id, "producer");
     transports = removeItems(transports, socket.id, "transport");
 
-    const { roomName } = peers[socket.id];
-    delete peers[socket.id];
+    if (peers[socket.id]?.roomName) {
+      const { roomName } = peers[socket.id];
+      delete peers[socket.id];
 
-    // remove socket from room
-    rooms[roomName] = {
-      router: rooms[roomName].router,
-      peers: rooms[roomName].peers.filter((socketId) => socketId !== socket.id),
-    };
+      // remove socket from room
+      rooms[roomName] = {
+        router: rooms[roomName].router,
+        peers: rooms[roomName].peers.filter(
+          (socketId) => socketId !== socket.id
+        ),
+      };
+    }
   });
 
   socket.on("joinRoom", async ({ roomName }, callback) => {
@@ -292,6 +288,8 @@ connections.on("connection", async (socket) => {
       ) {
         const producerSocket = peers[producerData.socketId].socket;
         // use socket to send producer id to producer
+        console.log("producerId ", id);
+        
         producerSocket.emit("new-producer", { producerId: id });
       }
     });
@@ -372,6 +370,8 @@ connections.on("connection", async (socket) => {
             transportData.transport.id == serverConsumerTransportId
         ).transport;
 
+        console.log("consumerTransport ", consumerTransport);
+
         // check if the router can consume the specified producer
         if (
           router.canConsume({
@@ -417,6 +417,8 @@ connections.on("connection", async (socket) => {
             serverConsumerId: consumer.id,
           };
 
+          console.log("params ", params);
+
           // send the parameters to the client
           callback({ params });
         }
@@ -448,7 +450,7 @@ const createWebRtcTransport = async (router) => {
         listenIps: [
           {
             ip: "0.0.0.0", // replace with relevant IP address
-            announcedIp: "10.0.0.115",
+            announcedIp: "127.0.0.1",
           },
         ],
         enableUdp: true,

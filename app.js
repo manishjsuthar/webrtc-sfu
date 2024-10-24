@@ -1,29 +1,11 @@
-/**
- * integrating mediasoup server with a node.js application
- */
-
-/* Please follow mediasoup installation requirements */
-/* https://mediasoup.org/documentation/v3/mediasoup/installation/ */
 import express from "express";
 const app = express();
 
 import https from "httpolyglot";
 import fs from "fs";
-import path from "path";
-const __dirname = path.resolve();
 
 import { Server } from "socket.io";
 import mediasoup from "mediasoup";
-
-// app.get('*', (req, res, next) => {
-//   const path = '/sfu/'
-
-//   if (req.path.indexOf(path) == 0 && req.path.length > path.length) return next()
-
-//   res.send(`You need to specify a room name in the path e.g. 'https://127.0.0.1/sfu/room'`)
-// })
-
-// app.use('/sfu/:room', express.static(path.join(__dirname, 'public')))
 
 // SSL cert for HTTPS access
 const options = {
@@ -154,11 +136,6 @@ connections.on("connection", async (socket) => {
   });
 
   const createRoom = async (roomName, socketId) => {
-    // worker.createRouter(options)
-    // options = { mediaCodecs, appData }
-    // mediaCodecs -> defined above
-    // appData -> custom application data - we are not supplying any
-    // none of the two are required
     let router1;
     let peers = [];
     if (rooms[roomName]) {
@@ -177,26 +154,6 @@ connections.on("connection", async (socket) => {
 
     return router1;
   };
-
-  // socket.on('createRoom', async (callback) => {
-  //   if (router === undefined) {
-  //     // worker.createRouter(options)
-  //     // options = { mediaCodecs, appData }
-  //     // mediaCodecs -> defined above
-  //     // appData -> custom application data - we are not supplying any
-  //     // none of the two are required
-  //     router = await worker.createRouter({ mediaCodecs, })
-  //     console.log(`Router ID: ${router.id}`)
-  //   }
-
-  //   getRtpCapabilities(callback)
-  // })
-
-  // const getRtpCapabilities = (callback) => {
-  //   const rtpCapabilities = router.rtpCapabilities
-
-  //   callback({ rtpCapabilities })
-  // }
 
   // Client emits a request to create server side Transport
   // We need to differentiate between the producer and consumer transports
